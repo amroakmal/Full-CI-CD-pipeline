@@ -11,7 +11,7 @@ Parameters:
         Type: String
     PrivateSubnet2CIDR:
         Type: String
-        
+
     # NETWORK STARTER CODE
 Resources:
     VPC:
@@ -147,12 +147,6 @@ Resources:
             SubnetId: !Ref PrivateSubnet2
     
     # SERVER STARTER CODE
-    ProfileWithRolesForOurApp:
-        Type: AWS::IAM::InstanceProfile
-        Properties:
-          Roles:
-            - UdacityS3ReadOnlyEC2
-
     SecGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
