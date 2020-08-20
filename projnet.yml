@@ -11,7 +11,8 @@ Parameters:
         Type: String
     PrivateSubnet2CIDR:
         Type: String
-
+        
+    # NETWORK STARTER CODE
 Resources:
     VPC:
         Type: AWS::EC2::VPC
@@ -144,6 +145,35 @@ Resources:
         Properties:
             RouteTableId: !Ref PrivateRouteTable2
             SubnetId: !Ref PrivateSubnet2
+    
+    # SERVER STARTER CODE
+    ProfileWithRolesForOurApp:
+        Type: AWS::IAM::InstanceProfile
+        Properties:
+          Roles:
+            - UdacityS3ReadOnlyEC2
+
+    SecGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+          GroupDescription: Allow http to our hosts and SSH from local only
+          VpcId:
+            Fn::ImportValue:
+              !Sub "${EnvironmentName}-VPCID"
+          SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 0.0.0.0/0
+          SecurityGroupEgress:
+          - IpProtocol: tcp
+            FromPort: 0
+            ToPort: 65535
+            CidrIp: 0.0.0.0/0
 
 Outputs: 
 
