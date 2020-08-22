@@ -5,11 +5,7 @@ Parameters:
         Type: String
     PublicSubnet1CIDR:
         Type: String
-    PublicSubnet2CIDR:
-        Type: String
     PrivateSubnet1CIDR:
-        Type: String
-    PrivateSubnet2CIDR:
         Type: String
 
     # NETWORK STARTER CODE
@@ -33,47 +29,18 @@ Resources:
             CidrBlock: !Ref PublicSubnet1CIDR
             MapPublicIpOnLaunch: true
             VpcId: !Ref VPC
-    PublicSubnet2:
-        Type: AWS::EC2::Subnet
-        Properties: 
-            AvailabilityZone: !Select [ 1, !GetAZs '' ]
-            CidrBlock: !Ref PublicSubnet2CIDR
-            MapPublicIpOnLaunch: true
-            VpcId: !Ref VPC
-    PrivateSubnet1:
-        Type: AWS::EC2::Subnet
-        Properties: 
-            AvailabilityZone: !Select [ 0, !GetAZs '' ]
-            CidrBlock: !Ref PrivateSubnet1CIDR
-            MapPublicIpOnLaunch: false
-            VpcId: !Ref VPC
-    PrivateSubnet2:
-        Type: AWS::EC2::Subnet
-        Properties: 
-            AvailabilityZone: !Select [ 1, !GetAZs '' ]
-            CidrBlock: !Ref PrivateSubnet2CIDR
-            MapPublicIpOnLaunch: false
-            VpcId: !Ref VPC
+
     PublicNatGatewayEIP1:
         Type: AWS::EC2::EIP
         DependsOn: InternetGatewayAttachement
         Properties: 
             Domain: vpc
-    PublicNatGatewayEIP2:
-        Type: AWS::EC2::EIP
-        DependsOn: InternetGatewayAttachement
-        Properties: 
-            Domain: vpc
+
     PublicNatGateway1:
         Type: AWS::EC2::NatGateway
         Properties: 
             AllocationId: !GetAtt PublicNatGatewayEIP1.AllocationId
             SubnetId: !Ref PublicSubnet1
-    PublicNatGateway2:
-        Type: AWS::EC2::NatGateway
-        Properties: 
-            AllocationId: !GetAtt PublicNatGatewayEIP2.AllocationId
-            SubnetId: !Ref PublicSubnet2
 
     PublicRouteTable:
       Type: AWS::EC2::RouteTable
@@ -96,55 +63,6 @@ Resources:
         Properties:
             RouteTableId: !Ref PublicRouteTable
             SubnetId: !Ref PublicSubnet1
-
-    PublicSubnet2RouteTableAssociation:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            RouteTableId: !Ref PublicRouteTable
-            SubnetId: !Ref PublicSubnet2
-    
-
-    PrivateRouteTable1:
-        Type: AWS::EC2::RouteTable
-        Properties: 
-            VpcId: !Ref VPC
-            Tags:
-                - Key: Name 
-                  Value: !Sub ${EnvironmentName} Private Routes (AZ1)
-
-    DefaultPrivateRoute1:
-        Type: AWS::EC2::Route
-        Properties:
-            RouteTableId: !Ref PrivateRouteTable1
-            DestinationCidrBlock: 0.0.0.0/0
-            NatGatewayId: !Ref PublicNatGateway1
-
-    PrivateSubnet1RouteTableAssociation:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            RouteTableId: !Ref PrivateRouteTable1
-            SubnetId: !Ref PrivateSubnet1
-
-    PrivateRouteTable2:
-        Type: AWS::EC2::RouteTable
-        Properties: 
-            VpcId: !Ref VPC
-            Tags: 
-                - Key: Name 
-                  Value: !Sub ${EnvironmentName} Private Routes (AZ2)
-
-    DefaultPrivateRoute2:
-        Type: AWS::EC2::Route
-        Properties:
-            RouteTableId: !Ref PrivateRouteTable2
-            DestinationCidrBlock: 0.0.0.0/0
-            NatGatewayId: !Ref PublicNatGateway2
-
-    PrivateSubnet2RouteTableAssociation:
-        Type: AWS::EC2::SubnetRouteTableAssociation
-        Properties:
-            RouteTableId: !Ref PrivateRouteTable2
-            SubnetId: !Ref PrivateSubnet2
     
     # SERVER STARTER CODE
     SecGroup:
@@ -168,6 +86,49 @@ Resources:
             FromPort: 0
             ToPort: 65535
             CidrIp: 0.0.0.0/0
+    
+    K8sInstance:
+        Type: AWS::EC2::Instance
+        Properties:
+            UserData:
+                Fn::Base64: !Sub |
+                    #!/bin/bash
+                    sudo apt-get update -y
+                    sudo apt install docker-ce -y
+                    sudo usermod -aG docker ubuntu
+                    sudo chmod 777 /var/run/docker.sock
+                    sudo systemctl start docker
+                    sudo systemctl enable docker
+                    curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+                    chmod +x ./kubectl
+                    sudo mv ./kubectl /usr/local/bin/kubectl
+                    sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
+                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic test"
+                    sudo apt-get update -y
+                    curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 
+                    sudo chmod +x minikube
+                    sudo mv minikube /usr/local/bin/
+                    sudo apt-get update -y
+                    minikube start
+                    sleep 50
+                    git clone https://github.com/amroakmal/proj
+                    cd proj
+                    #STILL DID NOT MAKE kubernetes SCRIPT ./kubernetes.sh
+
+            ImageId: ami-0bbe28eb2173f6167 
+            KeyName: capstone_ec2_key_pair
+            SecurityGroupIds: 
+                - !Ref SecGroup
+            SubnetId: !Ref PublicSubnet1
+            InstanceType: t3.medium 
+            BlockDeviceMappings:
+                - DeviceName: "/dev/sdk"
+                  Ebs:
+                      VolumeSize: '10'
+            Tags: 
+                - Key: Name
+                  Value: "capstone_proj_k8s"
 
 Outputs: 
 
@@ -197,36 +158,12 @@ Outputs:
 
     PublicSubnets:
         Description: A list of the public subnets
-        Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
+        Value: !Join [ ",", [ !Ref PublicSubnet1 ]]
         Export:
           Name: !Sub ${EnvironmentName}-PUB-NETS
-
-    PrivateSubnets:
-        Description: A list of the private subnets
-        Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
-        Export:
-          Name: !Sub ${EnvironmentName}-PRIV-NETS
 
     PublicSubnet1:
         Description: A reference to the public subnet in the 1st Availability Zone
         Value: !Ref PublicSubnet1
         Export:
           Name: !Sub ${EnvironmentName}-PUB1-SN
-
-    PublicSubnet2: 
-        Description: A reference to the public subnet in the 2nd Availability Zone
-        Value: !Ref PublicSubnet2
-        Export:
-          Name: !Sub ${EnvironmentName}-PUB2-SN
-
-    PrivateSubnet1:
-        Description: A reference to the private subnet in the 1st Availability Zone
-        Value: !Ref PrivateSubnet1
-        Export:
-          Name: !Sub ${EnvironmentName}-PRI1-SN
-
-    PrivateSubnet2: 
-        Description: A reference to the private subnet in the 2nd Availability Zone
-        Value: !Ref PrivateSubnet2
-        Export:
-          Name: !Sub ${EnvironmentName}-PRI2-SN          
