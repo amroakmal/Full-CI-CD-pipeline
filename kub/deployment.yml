@@ -1,20 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: proj-deploy
-spec: 
-    template: 
-        metadata:
-            name: proj
-            labels:
-                app: proj
+  name: proj-deploy
+spec:
+  selector:
+    matchLabels:
+      app: proj
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: proj
     spec:
-        containers: 
-        - name: proj_container
-          image: amrakmal/proj_img:latest
-          ports:
-          - containerPort: 80    
-    replicas: 3
-    selector: 
-        matchLabels:
-            app: proj
+      containers:
+      - name: proj_container
+        image: amrakmal/proj_img:latest
+        ports:
+        - containerPort: 80
