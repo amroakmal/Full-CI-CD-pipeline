@@ -86,7 +86,7 @@ Resources:
             ToPort: 65535
             CidrIp: 0.0.0.0/0
     
-    K8sInstance:
+    KubeInstance:
         Type: AWS::EC2::Instance
         Properties:
             UserData:
@@ -109,9 +109,10 @@ Resources:
                     minikube start
                     sleep 50
                     git clone https://github.com/amroakmal/proj
-                    cd proj/
+                    cd proj
                     ./kub/run-kubernetes.sh
-            ImageId: ami-0bcc094591f354be2 
+
+            ImageId: ami-0bbe28eb2173f6167 
             KeyName: capstone_ec2_key_pair
             SecurityGroupIds: 
                 - !Ref SecGroup
@@ -123,4 +124,4 @@ Resources:
                       VolumeSize: '10'
             Tags: 
                 - Key: Name
-                  Value: "Master node"
+                  Value: "capstone_proj_k8s"
