@@ -1,5 +1,5 @@
 pipeline {
-    enviroment {
+    environment {
         registry = "amrakmal/proj_img"
         docker_cred = "dockerhub"
     }
