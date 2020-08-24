@@ -27,12 +27,5 @@ pipeline {
                 }
             }
         }
-        // stage('Deploy') {
-        //     steps {
-        //         withAWS(region: 'us-east-2', credentials: 'AWSCredJenkins') {
-        //             sh './create.sh capstoneStack proj.yml projnetparams.json' 
-        //         }
-        //     }
-        // }
     }
 }
