@@ -1,6 +1,7 @@
 pipeline {
     enviroment {
         registry = "amrakmal/proj_img"
+        docker_cred = "dockerhub"
     }
     agent any
     stages {
@@ -13,15 +14,23 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
-                    def docker.build registry + ":latest"
+                    dockerImage = docker.build registry + ":latest"
                 }
             }
         }
-        stage('Upload to AWS') {
+        stage('Docker Push') {
             steps {
-                withAWS(region:'us-east-2',credentials:'aws-static') {
-                sh 'echo "Uploading content with AWS creds"'
-                    s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true, file:'index.html', bucket:'proj3-submit')
+                script {
+                    docker.withRegistry('', docker_cred) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                withAWS(region: 'us-east-2', credentials: 'AWSCredJenkins') {
+                    sh './create.sh capstoneStack proj.yml projnetparams.json' 
                 }
             }
         }

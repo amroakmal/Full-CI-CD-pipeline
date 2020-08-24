@@ -5,8 +5,6 @@ Parameters:
         Type: String
     PublicSubnet1CIDR:
         Type: String
-    PrivateSubnet1CIDR:
-        Type: String
 
     # NETWORK STARTER CODE
 Resources:
@@ -15,13 +13,16 @@ Resources:
         Properties:
             CidrBlock: !Ref VpcCIDR
             EnableDnsHostnames: true
+
     InternetGateway:
         Type: AWS::EC2::InternetGateway
+
     InternetGatewayAttachement:
         Type: AWS::EC2::VPCGatewayAttachment
         Properties: 
             InternetGatewayId: !Ref InternetGateway
             VpcId: !Ref VPC
+
     PublicSubnet1:
         Type: AWS::EC2::Subnet
         Properties: 
@@ -87,7 +88,7 @@ Resources:
             ToPort: 65535
             CidrIp: 0.0.0.0/0
     
-    K8sInstance:
+    KubeInstance:
         Type: AWS::EC2::Instance
         Properties:
             UserData:
@@ -131,7 +132,6 @@ Resources:
                   Value: "capstone_proj_k8s"
 
 Outputs: 
-
     VPC: 
         Description: A reference to the created VPC
         Value: !Ref VPC
@@ -144,18 +144,6 @@ Outputs:
         Export:
           Name: !Sub ${EnvironmentName}-PUB-RT
 
-    VPCPrivateRouteTable1:
-        Description: Private Routing AZ1
-        Value: !Ref PrivateRouteTable1
-        Export:
-          Name: !Sub ${EnvironmentName}-PRI1-RT
-
-    VPCPrivateRouteTable2:
-        Description: Private Routing AZ2
-        Value: !Ref PrivateRouteTable2
-        Export:
-          Name: !Sub ${EnvironmentName}-PRI2-RT
-
     PublicSubnets:
         Description: A list of the public subnets
         Value: !Join [ ",", [ !Ref PublicSubnet1 ]]
@@ -167,3 +155,9 @@ Outputs:
         Value: !Ref PublicSubnet1
         Export:
           Name: !Sub ${EnvironmentName}-PUB1-SN
+    
+    KubeNode:
+        Description: A reference to the master node
+        Value: !Ref KubeInstance
+        Export:
+            Name: kubeMasterNode
