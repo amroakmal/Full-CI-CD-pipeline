@@ -115,7 +115,7 @@ Resources:
                     cd proj
                     ./kub/run-kubernetes.sh
 
-            ImageId: ami-0bbe28eb2173f6167 
+            ImageId: ami-0bcc094591f354be2 
             KeyName: capstone_ec2_key_pair
             SecurityGroupIds: 
                 - !Ref SecGroup
