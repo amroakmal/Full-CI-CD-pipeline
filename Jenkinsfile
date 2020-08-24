@@ -8,10 +8,6 @@ pipeline {
         stage('Linting HTML') {
             steps {
                 sh 'tidy -q -e *.html'
-            }
-        }
-        stage('Linting Dockerfile') {
-            steps {
                 sh 'docker run --rm -i hadolint/hadolint < Dockerfile'
             }
         }
@@ -31,5 +27,12 @@ pipeline {
                 }
             }
         }
+        // stage('Deploy') {
+        //     steps {
+        //         withAWS(region: 'us-east-2', credentials: 'AWSCredJenkins') {
+        //             sh './create.sh capstoneStack proj.yml projnetparams.json' 
+        //         }
+        //     }
+        // }
     }
 }
