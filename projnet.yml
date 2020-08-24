@@ -115,7 +115,7 @@ Resources:
                     sleep 50
                     git clone https://github.com/amroakmal/proj
                     cd proj
-                    #STILL DID NOT MAKE kubernetes SCRIPT ./kubernetes.sh
+                    ./kub/run-kubernetes.sh
 
             ImageId: ami-0bbe28eb2173f6167 
             KeyName: capstone_ec2_key_pair
