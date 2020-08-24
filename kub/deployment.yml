@@ -1,0 +1,19 @@
+apiversion: apps/v1
+kind: Deployment
+metadata: proj-deploy
+spec: 
+    template: 
+        metadata:
+            name: proj
+            labels:
+                app: proj
+                type: frontend
+    spec:
+        containers: 
+        - name: proj_container
+          image: amrakmal/proj_img:latest
+    replicas: 3
+    selector: 
+        matchLabels:
+            app: proj
+            type: frontend

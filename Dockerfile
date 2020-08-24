@@ -6,7 +6,7 @@ WORKDIR /app
 
 ## Step 2:
 # Copy source code to working directory
-COPY ./index.html /app/index.html
+COPY . .
 
 # hadolint ignore=DL3013
 
