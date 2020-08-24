@@ -1,0 +1,11 @@
+apiversion: v1
+kind: Service
+metadata:
+    name: proj-service
+spec:
+    type: clusterIP
+    ports:
+    - targetPort: 80
+      containerPort: 80
+    selector:
+        app: myapp
